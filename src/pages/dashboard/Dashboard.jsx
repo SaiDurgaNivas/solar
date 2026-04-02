@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Users, Activity, Zap, CheckCircle, PlusCircle, PenTool, FileText } from "lucide-react";
+import { Users, Activity, Zap, CheckCircle, PlusCircle, PenTool, FileText, Bell } from "lucide-react";
 import api from "../../api/axiosConfig";
 
 const Dashboard = () => {
@@ -13,21 +13,23 @@ const Dashboard = () => {
     activeSystems: 0,
   });
   
-  const [recentInstallations, setRecentInstallations] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const [customersRes, installationsRes] = await Promise.all([
+            const [customersRes, installationsRes, billsRes] = await Promise.all([
                 api.get('users/?role=customer'),
-                api.get('installations/')
+                api.get('installations/'),
+                api.get('bills/')
             ]);
             
             const customers = customersRes.data;
             const installations = installationsRes.data;
+            const bills = billsRes.data;
 
-            const activeSystems = installations.filter(item => item.status === "Active").length;
-            const totalEnergy = installations.reduce((acc, curr) => acc + 5, 0); // Mock 5kW per system for now
+            const activeSystems = installations.filter(item => item.status === "Active" || item.status === "Completed").length;
+            const totalEnergy = installations.reduce((acc, curr) => acc + 5, 0); // Mock 5kW per system
 
             setStats({
                 totalCustomers: customers.length,
@@ -36,7 +38,38 @@ const Dashboard = () => {
                 activeSystems
             });
 
-            setRecentInstallations(installations.slice(0, 5));
+            // GENERATE PLAIN ENGLISH NOTIFICATIONS
+            let notifs = [];
+
+            // 1. Installation Notifications
+            installations.forEach(inst => {
+                notifs.push({
+                    id: `inst-${inst.id}`,
+                    icon: PenTool, color: "text-orange-400", bg: "bg-orange-500/10",
+                    title: "New Installation Requested",
+                    message: `Customer ${inst.client_name || 'unknown'} has requested a new solar installation for their property.`,
+                    tag: inst.status
+                });
+            });
+
+            // 2. Billing Notifications
+            bills.forEach(bill => {
+                const isPaid = bill.status === "Paid";
+                notifs.push({
+                    id: `bill-${bill.id}`,
+                    icon: FileText, color: isPaid ? "text-green-400" : "text-blue-400", bg: isPaid ? "bg-green-500/10" : "bg-blue-500/10",
+                    title: isPaid ? "Payment Received" : "Invoice Issued",
+                    message: isPaid 
+                      ? `Customer ${bill.client_name || 'unknown'} successfully paid their bill of ₹${bill.amount}.`
+                      : `A new bill of ₹${bill.amount} was issued to customer ${bill.client_name || 'unknown'}.`,
+                    tag: isPaid ? "Completed" : "Pending"
+                });
+            });
+
+            // Sort by descending ID to simulate "Most Recent First"
+            notifs.sort((a,b) => b.id.localeCompare(a.id));
+            setNotifications(notifs.slice(0, 5));
+
         } catch (error) {
             console.error("Error fetching admin dashboard data:", error);
         } finally {
@@ -55,19 +88,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white p-6 font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#020617] text-white p-6 font-sans overflow-x-hidden pb-20">
       
       {/* Dashboard Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8" >
         <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">
           {getGreeting()}, Admin
         </h1>
         <p className="text-gray-400 mt-2">
-          Here is what's happening with your solar infrastructure today.
+          Here is what is happening with your solar network today.
         </p>
       </motion.div>
 
@@ -76,15 +105,12 @@ const Dashboard = () => {
         {[
           { label: "Total Customers", value: stats.totalCustomers, icon: Users, color: "text-orange-400", bg: "bg-orange-500/10" },
           { label: "Total Installations", value: stats.totalInstallations, icon: PenTool, color: "text-yellow-400", bg: "bg-yellow-500/10" },
-          { label: "Total Capacity", value: `${stats.energyGenerated} kW`, icon: Zap, color: "text-green-400", bg: "bg-green-500/10" },
+          { label: "Estimated Capacity", value: `${stats.energyGenerated} kW`, icon: Zap, color: "text-green-400", bg: "bg-green-500/10" },
           { label: "Active Systems", value: stats.activeSystems, icon: CheckCircle, color: "text-blue-400", bg: "bg-blue-500/10" }
         ].map((stat, i) => (
           <motion.div 
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-lg hover:shadow-orange-500/10 transition flex items-center gap-4"
+            key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+            className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-lg flex items-center gap-4"
           >
             <div className={`p-4 rounded-full ${stat.bg}`}>
               <stat.icon className={`w-8 h-8 ${stat.color}`} />
@@ -101,22 +127,17 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Quick Actions & Recent Table */}
       <div className="grid lg:grid-cols-3 gap-8">
         
         {/* Quick Actions */}
         <div className="lg:col-span-1 space-y-4">
           <h3 className="text-xl font-bold text-gray-200 mb-4">Quick Actions</h3>
           {[
-            { to: "/customer", icon: PlusCircle, title: "Add Customer", desc: "Register a new client", hover: "hover:border-orange-500" },
-            { to: "/installations", icon: Zap, title: "Manage Installations", desc: "Access infrastructure grid", hover: "hover:border-yellow-500" },
-            { to: "/billing", icon: FileText, title: "Generate Invoice", desc: "Create new bill", hover: "hover:border-blue-500" }
+            { to: "/customer", icon: PlusCircle, title: "Add Customer", desc: "Easily register a new client", hover: "hover:border-orange-500" },
+            { to: "/installations", icon: Zap, title: "Manage Installations", desc: "View and edit solar arrays", hover: "hover:border-yellow-500" },
+            { to: "/billing", icon: FileText, title: "Generate Invoice", desc: "Create a new customer bill", hover: "hover:border-blue-500" }
           ].map((action, i) => (
-            <Link 
-              key={i} 
-              to={action.to} 
-              className={`block bg-[#0f172a]/60 backdrop-blur-md p-6 rounded-2xl border border-white/10 ${action.hover} transition group`}
-            >
+            <Link key={i} to={action.to} className={`block bg-[#0f172a]/60 backdrop-blur-md p-6 rounded-2xl border border-white/10 ${action.hover} transition group`}>
               <div className="flex items-center gap-4">
                 <div className="bg-white/5 p-3 rounded-xl group-hover:bg-white/10 transition">
                   <action.icon className="w-6 h-6 text-gray-300 group-hover:text-white" />
@@ -130,53 +151,46 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Recent Installations Table */}
+        {/* System Notifications Feed */}
         <div className="lg:col-span-2 bg-[#0f172a]/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
           <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Activity className="text-orange-400" /> Recent Activity
+                <Bell className="text-orange-400" /> Notifications & Activity
               </h2>
-              <Link to="/installations" className="text-sm text-orange-400 hover:text-orange-300 font-medium">View All</Link>
           </div>
 
           <div className="p-6">
             {loading ? (
                 <div className="space-y-4">
-                  {[1,2,3].map(i => <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse"></div>)}
+                  {[1,2,3].map(i => <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse"></div>)}
                 </div>
-            ) : recentInstallations.length === 0 ? (
+            ) : notifications.length === 0 ? (
               <div className="text-center py-12">
-                <PenTool className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 font-medium">No installations found</p>
+                <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400 font-medium">No recent notifications</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="text-gray-500 text-xs uppercase tracking-widest border-b border-white/5">
-                      <th className="py-4 px-4 font-semibold">Client</th>
-                      <th className="py-4 px-4 font-semibold">System</th>
-                      <th className="py-4 px-4 font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {recentInstallations.map((install) => (
-                      <tr key={install.id} className="hover:bg-white/5 transition group">
-                        <td className="py-4 px-4 font-medium text-gray-200">{install.client_name}</td>
-                        <td className="py-4 px-4 text-gray-400">{install.system}</td>
-                        <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                            install.status === "Active" || install.status === "Completed"
-                            ? "bg-green-500/10 text-green-400 border-green-500/20" 
-                            : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                          }`}>
-                            {install.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                {notifications.map((notif, idx) => (
+                  <motion.div 
+                    key={notif.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="flex items-start gap-4 bg-white/5 border border-white/10 p-5 rounded-2xl hover:bg-white/10 transition"
+                  >
+                     <div className={`p-3 rounded-xl ${notif.bg} shrink-0`}>
+                       <notif.icon className={`w-6 h-6 ${notif.color}`} />
+                     </div>
+                     <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                           <h3 className="font-bold text-gray-100">{notif.title}</h3>
+                           <span className="text-xs font-bold px-2 py-1 bg-white/5 rounded text-gray-400 uppercase tracking-widest">{notif.tag}</span>
+                        </div>
+                        <p className="text-gray-400 text-sm mt-1">{notif.message}</p>
+                     </div>
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
