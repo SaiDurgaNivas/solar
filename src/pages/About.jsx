@@ -195,14 +195,14 @@ function About() {
             </div>
             
             <div className="mt-16 pt-10 border-t border-white/20 flex flex-wrap justify-center gap-10">
-               <div className="flex items-center gap-2 text-white/80">
-                 <MapPin className="w-5 h-5" /> San Francisco, CA
+               <div className="flex items-center gap-2 text-white/80 text-sm md:text-base">
+                 <MapPin className="w-5 h-5 flex-shrink-0" /> Kakinada, Pithapuram, Visakhapatnam, Vijayawada
                </div>
-               <div className="flex items-center gap-2 text-white/80">
-                 <Mail className="w-5 h-5" /> hello@solaradmin.com
+               <div className="flex items-center gap-2 text-white/80 text-sm md:text-base">
+                 <Mail className="w-5 h-5 flex-shrink-0" /> Rcsolar@gmail.com
                </div>
-               <div className="flex items-center gap-2 text-white/80">
-                 <Phone className="w-5 h-5" /> +1 (800) 555-0199
+               <div className="flex items-center gap-2 text-white/80 text-sm md:text-base">
+                 <Phone className="w-5 h-5 flex-shrink-0" /> 6300697301
                </div>
             </div>
           </div>
