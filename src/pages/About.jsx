@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Sun, ShieldCheck, TrendingUp, Users, Building, 
@@ -38,12 +39,12 @@ function About() {
               We empower businesses and homeowners with intelligent solar infrastructure, making the transition to renewable energy seamless and data-driven.
             </p>
             <div className="flex justify-center gap-4">
-              <button className="bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+              <a href="#services" className="bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(249,115,22,0.3)]">
                 Our Services
-              </button>
-              <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/20 transition-all">
+              </a>
+              <a href="#contact" className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/20 transition-all">
                 Contact Us
-              </button>
+              </a>
             </div>
           </motion.div>
         </div>
@@ -126,7 +127,7 @@ function About() {
       </div>
 
       {/* 🔥 FEATURES GRID */}
-      <div className="bg-[#0f172a] py-32 border-y border-white/5">
+      <div id="services" className="bg-[#0f172a] py-32 border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Our Core Capabilities</h2>
@@ -177,7 +178,7 @@ function About() {
       </div>
 
       {/* 🔥 CTA & CONTACT */}
-      <div className="px-6 max-w-7xl mx-auto py-32">
+      <div id="contact" className="px-6 max-w-7xl mx-auto py-32">
         <div className="bg-gradient-to-br from-orange-600 to-yellow-600 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
           {/* Decor */}
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
@@ -188,9 +189,9 @@ function About() {
               Join thousands of providers worldwide managing their installations smarter with SolarAdmin.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <button className="bg-[#020617] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-black transition-colors shadow-xl flex items-center justify-center gap-2">
-                Get Started Now <zap className="w-5 h-5 fill-current" />
-              </button>
+              <Link to="/login" className="bg-[#020617] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-black transition-colors shadow-xl flex items-center justify-center gap-2">
+                Get Started Now <Zap className="w-5 h-5 fill-current" />
+              </Link>
             </div>
             
             <div className="mt-16 pt-10 border-t border-white/20 flex flex-wrap justify-center gap-10">
