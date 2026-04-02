@@ -42,7 +42,10 @@ function Workers() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api.post('users/', newWorker);
+      // Django's strict username validator blocks spaces
+      const safeUsername = newWorker.username.trim().replace(/\s+/g, '_').toLowerCase();
+      
+      await api.post('users/', { ...newWorker, username: safeUsername });
       showToast("Worker added to grid successfully!");
       setShowModal(false);
       setNewWorker({ username: '', email: '', password: '', role: 'agent' });
@@ -222,7 +225,7 @@ function Workers() {
                                     {worker.username.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-gray-200 text-lg">{worker.username}</p>
+                                    <p className="font-bold text-gray-200 text-lg capitalize">{worker.username.replace(/_/g, ' ')}</p>
                                     <p className="text-sm text-gray-500">{worker.email}</p>
                                 </div>
                              </div>
