@@ -39,9 +39,11 @@ class BookingSerializer(serializers.ModelSerializer):
         fields = ['id', 'client', 'client_name', 'service_type', 'date', 'notes']
 
 class BillSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='client.username', read_only=True)
+
     class Meta:
         model = Bill
-        fields = '__all__'
+        fields = ['id', 'client', 'client_name', 'bill_no', 'date', 'units', 'amount', 'loan', 'subsidy', 'downpayment', 'status']
 
 class UsageTelemetrySerializer(serializers.ModelSerializer):
     class Meta:
