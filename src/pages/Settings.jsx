@@ -1,22 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings as SettingsIcon, Save, RefreshCw, Activity, Moon, Zap, Globe, Check } from "lucide-react";
+import { Settings as SettingsIcon, Save, RefreshCw, Activity, Moon, Zap, Globe, Check, Bell, Mail, Phone } from "lucide-react";
 
 function Settings() {
-  const [settings, setSettings] = useState({
-    realtime: true,
-    autoRefresh: true,
-    darkMode: true,
-    efficiency: 75,
-    timezone: "IST (UTC+5:30)",
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('solar_admin_settings');
+    return saved ? JSON.parse(saved) : {
+      realtime: true,
+      autoRefresh: true,
+      darkMode: true,
+      efficiency: 75,
+      timezone: "IST (UTC+5:30)",
+      alertsEnabled: true,
+      adminEmail: "admin@solarsystem.com",
+      adminPhone: "+91-9999999999"
+    };
   });
+  
   const [saved, setSaved] = useState(false);
 
   const handleToggle = (key) => setSettings({ ...settings, [key]: !settings[key] });
   const handleSlider = (e) => setSettings({ ...settings, efficiency: e.target.value });
-  const handleTimezone = (e) => setSettings({ ...settings, timezone: e.target.value });
+  const handleInput = (e) => setSettings({ ...settings, [e.target.name]: e.target.value });
 
   const handleSave = () => {
+    localStorage.setItem('solar_admin_settings', JSON.stringify(settings));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -33,7 +41,6 @@ function Settings() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-white p-6 md:p-12 font-sans overflow-hidden relative">
-      {/* Background Decor */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-orange-500/10 blur-[100px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
@@ -49,14 +56,14 @@ function Settings() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">System Preferences</h1>
-            <p className="text-gray-400 text-sm">Configure your solar dashboard experience</p>
+            <p className="text-gray-400 text-sm">Configure your solar dashboard experience and dispatch rules</p>
           </div>
         </div>
 
         <div className="bg-[#0f172a]/80 backdrop-blur-2xl p-8 rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden">
           
           <div className="space-y-2 relative z-10">
-            {/* 🔹 Real-time Monitoring */}
+            {/* 🔹 Core Settings */}
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 border-b border-light/5 hover:bg-white/[0.02] -mx-8 px-8 transition-colors">
               <div className="flex items-center gap-4 mb-4 sm:mb-0">
                 <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400"><Activity className="w-5 h-5" /></div>
@@ -77,48 +84,6 @@ function Settings() {
               </button>
             </motion.div>
 
-            {/* 🔹 Auto Refresh */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 border-b border-light/5 hover:bg-white/[0.02] -mx-8 px-8 transition-colors">
-              <div className="flex items-center gap-4 mb-4 sm:mb-0">
-                <div className="p-2 bg-green-500/10 rounded-lg text-green-400"><RefreshCw className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-lg font-semibold text-gray-100">Auto Refresh Charts</p>
-                  <p className="text-gray-500 text-sm">Automatically sync analytics every 30s</p>
-                </div>
-              </div>
-              <button
-                onClick={() => handleToggle("autoRefresh")}
-                className={`min-w-[60px] h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                  settings.autoRefresh ? "bg-gradient-to-r from-orange-500 to-yellow-500" : "bg-gray-700"
-                } shadow-inner focus:outline-none`}
-              >
-                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${
-                  settings.autoRefresh ? "translate-x-7" : "translate-x-0"
-                }`} />
-              </button>
-            </motion.div>
-
-            {/* 🔹 Dark Mode */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 border-b border-light/5 hover:bg-white/[0.02] -mx-8 px-8 transition-colors">
-              <div className="flex items-center gap-4 mb-4 sm:mb-0">
-                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"><Moon className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-lg font-semibold text-gray-100">Cinematic Interface</p>
-                  <p className="text-gray-500 text-sm">Force dark mode styling application-wide</p>
-                </div>
-              </div>
-              <button
-                onClick={() => handleToggle("darkMode")}
-                className={`min-w-[60px] h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${
-                  settings.darkMode ? "bg-gradient-to-r from-orange-500 to-yellow-500" : "bg-gray-700"
-                } shadow-inner focus:outline-none`}
-              >
-                <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${
-                  settings.darkMode ? "translate-x-7" : "translate-x-0"
-                }`} />
-              </button>
-            </motion.div>
-
             {/* 🔹 Efficiency Slider */}
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 border-b border-light/5 hover:bg-white/[0.02] -mx-8 px-8 transition-colors">
               <div className="flex items-center gap-4 mb-4 sm:mb-0">
@@ -133,71 +98,58 @@ function Settings() {
                   {settings.efficiency}%
                 </span>
                 <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={settings.efficiency}
-                  onChange={handleSlider}
-                  className="w-full sm:w-40 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  type="range" min="50" max="100" value={settings.efficiency} onChange={handleSlider}
+                  className="w-full sm:w-40 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                 />
               </div>
             </motion.div>
 
-            {/* 🔹 Timezone */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-6 border-b border-light/5 hover:bg-white/[0.02] -mx-8 px-8 transition-colors">
-               <div className="flex items-center gap-4 mb-4 sm:mb-0">
-                <div className="p-2 bg-pink-500/10 rounded-lg text-pink-400"><Globe className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-lg font-semibold text-gray-100">Regional Timezone</p>
-                  <p className="text-gray-500 text-sm">Display analytics based on facility location</p>
+            {/* 🔥 ADVANCED NOTIFICATION ROUTING 🔥 */}
+            <motion.div variants={itemVariants} className="mt-8 pt-8 border-t border-white/10">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-100 to-gray-400 bg-clip-text text-transparent mb-6 flex items-center gap-2">
+                    <Bell className="w-6 h-6 text-orange-400" /> Advanced Dispatch Routing
+                </h2>
+
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 mb-4">
+                  <div>
+                    <p className="text-lg font-semibold text-gray-100">Customer Booking Alerts</p>
+                    <p className="text-gray-500 text-sm">Fire an SMS or Email payload to Admin whenever a client books hardware.</p>
+                  </div>
+                  <button
+                    onClick={() => handleToggle("alertsEnabled")}
+                    className={`min-w-[60px] h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${
+                      settings.alertsEnabled ? "bg-gradient-to-r from-orange-500 to-yellow-500" : "bg-gray-700"
+                    } shadow-inner focus:outline-none`}
+                  >
+                    <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform ${settings.alertsEnabled ? "translate-x-7" : "translate-x-0"}`} />
+                  </button>
                 </div>
-              </div>
-              <select
-                value={settings.timezone}
-                onChange={handleTimezone}
-                className="bg-[#020617] border border-white/10 text-gray-300 font-medium px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-inner w-full sm:w-auto appearance-none"
-              >
-                <option value="IST (UTC+5:30)">IST (UTC+5:30)</option>
-                <option value="UTC">UTC (Universal)</option>
-                <option value="PST">PST (Pacific)</option>
-                <option value="EST">EST (Eastern)</option>
-              </select>
+
+                <div className={`grid grid-cols-1 sm:grid-cols-2 gap-6 transition-opacity duration-300 ${settings.alertsEnabled ? "opacity-100" : "opacity-30 pointer-events-none"}`}>
+                   <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                          <Mail className="w-3 h-3"/> Internal Admin Email
+                      </label>
+                      <input type="email" name="adminEmail" value={settings.adminEmail} onChange={handleInput} className="w-full bg-[#020617] border border-white/10 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-gray-300 font-mono shadow-inner" />
+                   </div>
+                   <div>
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                          <Phone className="w-3 h-3"/> Executive SMS Endpoint
+                      </label>
+                      <input type="text" name="adminPhone" value={settings.adminPhone} onChange={handleInput} className="w-full bg-[#020617] border border-white/10 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-gray-300 font-mono shadow-inner" />
+                   </div>
+                </div>
             </motion.div>
+
           </div>
 
-          {/* 🔹 Action Buttons */}
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-end gap-4 mt-10 pt-4">
-            <button className="px-6 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-medium transition-colors w-full sm:w-auto">
-              Restore Defaults
-            </button>
+          <motion.div variants={itemVariants} className="flex justify-end gap-4 mt-10 pt-4 border-t border-white/10">
             <button 
               onClick={handleSave}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-400 hover:to-orange-500 text-black font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] w-full sm:w-auto"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-400 hover:to-orange-500 text-black font-extrabold flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] w-full sm:w-auto"
             >
-              <AnimatePresence mode="wait">
-                {saved ? (
-                  <motion.div
-                    key="saved"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Check className="w-5 h-5" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="save"
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Save className="w-5 h-5" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              {saved ? "Saved!" : "Store Preferences"}
+               {saved ? <Check className="w-5 h-5" /> : <Save className="w-5 h-5" />}
+               {saved ? "Configurations Locked!" : "Store Preferences"}
             </button>
           </motion.div>
         </div>

@@ -52,7 +52,18 @@ function CustomerDashboard() {
 
     try {
         await api.post('installations/', payload);
-        alert("✅ Hardware Request Sent to Administration Grid!");
+        
+        let successMsg = "✅ Hardware Request Sent to Administration Grid!";
+        const adminPrefs = localStorage.getItem('solar_admin_settings');
+        if (adminPrefs) {
+            const prefs = JSON.parse(adminPrefs);
+            if (prefs.alertsEnabled) {
+                successMsg += `\n\n🔔 AUTOMATED DISPATCH:\nNotification sent to Admin via SMS (${prefs.adminPhone}) and Email (${prefs.adminEmail})`;
+            }
+        }
+        
+        alert(successMsg);
+        
         setForm({
           systemSize: "", installationType: "", roofType: "", budget: "", preferredDate: "", notes: "",
         });
