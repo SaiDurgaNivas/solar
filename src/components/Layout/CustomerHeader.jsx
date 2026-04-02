@@ -1,81 +1,37 @@
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Bell, Search, LayoutGrid } from "lucide-react";
 
-function CustomerHeader({ user, onLogout }) { // ✅ onLogout add
-
-  const navigate = useNavigate();
-
-  // 🔥 Active link style
-  const linkClass = ({ isActive }) =>
-    `px-4 py-2 rounded-md font-medium transition ${
-      isActive
-        ? "bg-orange-500 text-white"
-        : "text-gray-700 hover:text-orange-500"
-    }`;
-
-  // 🔒 Logout
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout(); // ✅ App state clear
-    }
-
-    localStorage.removeItem("solar_user"); // optional safety
-    navigate("/login"); // ✅ login page ki redirect
-  };
-
+function CustomerHeader({ user }) {
+  // We stripped the nav because it is now natively handled by CustomerSidebar.jsx
+  
   return (
-    <header className="w-full bg-white border-b shadow-sm">
+    <header className="w-full h-20 bg-[#020617] border-b border-white/5 flex items-center justify-between px-8 backdrop-blur-md sticky top-0 z-40">
+      
+      {/* 🔹 LEFT: Breadcrumbs or Title Space */}
+      <div className="flex items-center gap-3 text-white/50">
+         <LayoutGrid className="w-5 h-5" />
+         <span className="font-medium tracking-wide">Client Workspace v2.0</span>
+      </div>
 
-      <div className="flex justify-between items-center px-6 py-3">
-
-        {/* 🔹 LEFT: LOGO */}
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">☀️</span>
-          <h1 className="text-lg font-bold">
-            Solar<span className="text-orange-500">Customer</span>
-          </h1>
+      {/* 🔹 RIGHT: Functional Icons */}
+      <div className="flex items-center gap-6">
+        
+        {/* Fake Search */}
+        <div className="hidden md:flex items-center bg-white/5 rounded-full px-4 py-2 border border-white/10">
+           <Search className="w-4 h-4 text-white/40 mr-2" />
+           <input 
+             type="text" 
+             placeholder="Search hardware..." 
+             className="bg-transparent text-sm text-white focus:outline-none placeholder-white/30"
+             disabled
+           />
         </div>
 
-        {/* 🔹 CENTER: NAVIGATION */}
-        <nav className="hidden md:flex gap-4">
-
-          <NavLink to="/customer-dashboard" end className={linkClass}>
-            Dashboard
-          </NavLink>
-
-          <NavLink to="/customer-dashboard/bills" className={linkClass}>
-            Bills
-          </NavLink>
-
-          <NavLink to="/customer-dashboard/usage" className={linkClass}>
-            Usage
-          </NavLink>
-
-          <NavLink to="/customer-dashboard/support" className={linkClass}>
-            Support
-          </NavLink>
-
-          <NavLink to="/customer-dashboard/profile" className={linkClass}>
-            Profile
-          </NavLink>
-
-        </nav>
-
-        {/* 🔹 RIGHT: USER + LOGOUT */}
-        <div className="flex items-center gap-4">
-
-          <span className="text-sm font-semibold">
-            {user?.username || "Customer"}
-          </span>
-
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-          >
-            Logout
-          </button>
-
-        </div>
+        {/* Fake Notifications */}
+        <button className="relative p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-full transition">
+           <Bell className="w-5 h-5" />
+           <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+        </button>
 
       </div>
 

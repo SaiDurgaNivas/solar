@@ -38,6 +38,7 @@ import Header from "../components/Layout/Header";
 import CustomerHeader from "../components/Layout/CustomerHeader";
 import AgentHeader from "../components/Layout/AgentHeader";
 import Sidebar from "../components/Layout/Sidebar";
+import CustomerSidebar from "../components/Layout/CustomerSidebar";
 import Footer from "../components/Layout/Footer";
 
 
@@ -56,11 +57,12 @@ const ProtectedLayout = ({ children, user, onLogout, role }) => {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-[#020617] text-white">
 
       {role === "admin" && <Sidebar user={user} onLogout={onLogout} />}
+      {role === "customer" && <CustomerSidebar user={user} onLogout={onLogout} />}
 
-      <div className={`${role === "admin" ? "ml-64" : ""} w-full min-h-screen flex flex-col`}>
+      <div className={`${(role === "admin" || role === "customer") ? "ml-64" : ""} w-full min-h-screen flex flex-col`}>
 
         {role === "admin" && <Header user={user} onLogout={onLogout} />}
         {role === "customer" && <CustomerHeader user={user} onLogout={onLogout} />}
