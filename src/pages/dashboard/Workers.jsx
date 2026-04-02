@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, UserCheck, UserX, UserMinus, HardHat, PlusCircle, CheckCircle } from "lucide-react";
+import { Users, UserCheck, UserX, UserMinus, HardHat, PlusCircle, CheckCircle, X } from "lucide-react";
 import api from "../../api/axiosConfig";
 
 function Workers() {
@@ -8,6 +8,11 @@ function Workers() {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [newWorker, setNewWorker] = useState({ username: '', email: '', password: '', role: 'agent' });
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -31,6 +36,23 @@ function Workers() {
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleAddWorker = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await api.post('users/', newWorker);
+      showToast("Worker added to grid successfully!");
+      setShowModal(false);
+      setNewWorker({ username: '', email: '', password: '', role: 'agent' });
+      fetchData();
+    } catch (err) {
+      console.error("Error creating worker:", err);
+      showToast("Failed to create worker.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const markAttendance = async (workerId, status) => {
@@ -74,6 +96,49 @@ function Workers() {
         )}
       </AnimatePresence>
 
+      {/* Add Worker Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-[#0f172a] border border-white/10 p-8 rounded-[2rem] shadow-2xl w-full max-w-md relative"
+            >
+              <button 
+                onClick={() => setShowModal(false)}
+                className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+              
+              <h2 className="text-2xl font-bold text-white mb-6">Register New Field Worker</h2>
+              
+              <form onSubmit={handleAddWorker} className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Full Name</label>
+                  <input type="text" required value={newWorker.username} onChange={e => setNewWorker({...newWorker, username: e.target.value})} className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none" placeholder="Ravi Kumar" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Email Address</label>
+                  <input type="email" required value={newWorker.email} onChange={e => setNewWorker({...newWorker, email: e.target.value})} className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none" placeholder="agent@solaradmin.com" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Temporary Password</label>
+                  <input type="password" required value={newWorker.password} onChange={e => setNewWorker({...newWorker, password: e.target.value})} className="w-full bg-[#020617] border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-orange-500/50 outline-none" placeholder="••••••••" />
+                </div>
+                
+                <button type="submit" disabled={submitting} className="w-full mt-6 bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-extrabold py-4 rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)] transition duration-300 disabled:opacity-50">
+                  {submitting ? "Provisioning..." : "Assign Worker Role"}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-6xl mx-auto relative z-10">
         
         {/* Header */}
@@ -85,8 +150,8 @@ function Workers() {
               <p className="text-gray-400 text-lg mt-2 font-medium">Manage deployment teams and track daily attendance</p>
             </div>
             
-            {/* Quick Stats */}
-            <div className="flex gap-4">
+            {/* Quick Stats & Actions */}
+            <div className="flex gap-4 items-center">
                <div className="bg-[#0f172a] border border-white/10 px-5 py-3 rounded-2xl flex items-center gap-3 shadow-lg">
                   <Users className="w-6 h-6 text-blue-400"/>
                   <div>
@@ -94,6 +159,9 @@ function Workers() {
                      <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">Total Agents</p>
                   </div>
                </div>
+               <button onClick={() => setShowModal(true)} className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 px-5 py-3.5 rounded-2xl flex items-center gap-2 font-bold transition shadow-inner">
+                  <PlusCircle className="w-5 h-5"/> Add Worker
+               </button>
             </div>
         </motion.div>
 
@@ -115,7 +183,7 @@ function Workers() {
               <div className="text-center py-16">
                 <HardHat className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-gray-400">No Field Workers Found</h3>
-                <p className="text-gray-500 mt-2">Create an Agent account to see them appear on this roster.</p>
+                <p className="text-gray-500 mt-2">Click Add Worker above to provision your first field agent onto the grid.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
