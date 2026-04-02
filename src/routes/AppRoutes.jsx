@@ -26,6 +26,7 @@ import Notifications from "../pages/Notifications";
 import Settings from "../pages/Settings";
 import AddCustomer from "../pages/dashboard/AddCustomer";
 import AdminBookings from "../pages/dashboard/AdminBookings";
+import Workers from "../pages/dashboard/Workers";
 
 import NotFound from "../pages/NotFound";
 
@@ -162,6 +163,15 @@ function AppRoutes({ user, onLogin, onLogout }) {
         element={
           <ProtectedLayout user={user} onLogout={onLogout} role="admin">
             <Customer />
+          </ProtectedLayout>
+        }
+      />
+
+      <Route
+        path="/workers"
+        element={
+          <ProtectedLayout user={user} onLogout={onLogout} role="admin">
+            <Workers />
           </ProtectedLayout>
         }
       />

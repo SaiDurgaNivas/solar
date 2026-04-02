@@ -83,3 +83,16 @@ class UsageTelemetryViewSet(viewsets.ModelViewSet):
         if client_id:
             return UsageTelemetry.objects.filter(client_id=client_id)
         return UsageTelemetry.objects.all()
+
+from .models import WorkerAttendance
+from .serializers import WorkerAttendanceSerializer
+
+class WorkerAttendanceViewSet(viewsets.ModelViewSet):
+    queryset = WorkerAttendance.objects.all()
+    serializer_class = WorkerAttendanceSerializer
+
+    def get_queryset(self):
+        worker_id = self.request.query_params.get('worker_id')
+        if worker_id:
+            return WorkerAttendance.objects.filter(worker_id=worker_id)
+        return WorkerAttendance.objects.all()

@@ -35,6 +35,10 @@ function Sidebar({ user, onLogout }) {
           Customer
         </NavLink>
 
+        <NavLink to="/workers" className={linkClass}>
+          Workers
+        </NavLink>
+
         <NavLink to="/solarpanels" className={linkClass}>
           Solar Panels
         </NavLink>

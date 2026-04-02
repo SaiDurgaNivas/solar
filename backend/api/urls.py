@@ -8,6 +8,7 @@ router.register(r'installations', views.InstallationViewSet)
 router.register(r'bookings', views.BookingViewSet)
 router.register(r'bills', views.BillViewSet)
 router.register(r'telemetry', views.UsageTelemetryViewSet)
+router.register(r'attendance', views.WorkerAttendanceViewSet)
 
 urlpatterns = [
     path('auth/login/', views.login_view, name='login'),

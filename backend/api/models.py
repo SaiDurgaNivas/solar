@@ -66,3 +66,20 @@ class UsageTelemetry(models.Model):
 
     def __str__(self):
         return f"Telemetry for {self.client.username}"
+
+class WorkerAttendance(models.Model):
+    STATUS_CHOICES = (
+        ('Present', 'Present'),
+        ('Absent', 'Absent'),
+        ('On Leave', 'On Leave'),
+    )
+    worker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attendances', limit_choices_to={'role': 'agent'})
+    date = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Present')
+
+    # Ensure a worker only has one attendance record per day.
+    class Meta:
+        unique_together = ('worker', 'date')
+
+    def __str__(self):
+        return f"{self.worker.username} - {self.date} - {self.status}"

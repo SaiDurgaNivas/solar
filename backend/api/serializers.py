@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, CustomerProfile, Installation, Booking, Bill, UsageTelemetry
+from .models import User, CustomerProfile, Installation, Booking, Bill, UsageTelemetry, WorkerAttendance
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,4 +48,11 @@ class BillSerializer(serializers.ModelSerializer):
 class UsageTelemetrySerializer(serializers.ModelSerializer):
     class Meta:
         model = UsageTelemetry
+        fields = '__all__'
+
+class WorkerAttendanceSerializer(serializers.ModelSerializer):
+    worker_name = serializers.CharField(source='worker.username', read_only=True)
+    
+    class Meta:
+        model = WorkerAttendance
         fields = '__all__'
