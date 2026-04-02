@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
-from .models import User, CustomerProfile, Installation, Booking
-from .serializers import UserSerializer, InstallationSerializer, BookingSerializer
+from .models import User, CustomerProfile, Installation, Booking, Bill, UsageTelemetry
+from .serializers import UserSerializer, InstallationSerializer, BookingSerializer, BillSerializer, UsageTelemetrySerializer
 
 @api_view(['POST'])
 def login_view(request):
@@ -35,9 +35,13 @@ def login_view(request):
             user.set_password(password)
             user.save()
 
-    # Create dummy installations on first customer creation
+    # Create dummy data on first customer creation
     if user.role == 'customer' and not Installation.objects.filter(client=user).exists():
         Installation.objects.create(system="5KW Residential Setup", status="Pending", client=user, location="Demo Site")
+        Bill.objects.create(client=user, bill_no="B001", units=120, amount=1500, loan=500, subsidy=200, downpayment=800, status="Paid")
+        Bill.objects.create(client=user, bill_no="B002", units=95, amount=1100, loan=400, subsidy=150, downpayment=550, status="Unpaid")
+        Bill.objects.create(client=user, bill_no="B003", units=140, amount=1800, loan=700, subsidy=300, downpayment=800, status="Paid")
+        UsageTelemetry.objects.create(client=user, monthly_avg=140, total_units=450, efficiency=91)
 
     serializer = UserSerializer(user)
     return Response({'user': serializer.data, 'token': 'dummy-token-for-now'})
@@ -59,3 +63,23 @@ class InstallationViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+
+class BillViewSet(viewsets.ModelViewSet):
+    queryset = Bill.objects.all()
+    serializer_class = BillSerializer
+
+    def get_queryset(self):
+        client_id = self.request.query_params.get('client_id')
+        if client_id:
+            return Bill.objects.filter(client_id=client_id)
+        return Bill.objects.all()
+
+class UsageTelemetryViewSet(viewsets.ModelViewSet):
+    queryset = UsageTelemetry.objects.all()
+    serializer_class = UsageTelemetrySerializer
+
+    def get_queryset(self):
+        client_id = self.request.query_params.get('client_id')
+        if client_id:
+            return UsageTelemetry.objects.filter(client_id=client_id)
+        return UsageTelemetry.objects.all()

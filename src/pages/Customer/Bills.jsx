@@ -1,174 +1,148 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Search, FileText, CheckCircle, Clock } from "lucide-react";
+import api from "../../api/axiosConfig";
 
 function Bills() {
   const [bills, setBills] = useState([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🔥 Check localStorage first
-    const storedBills = JSON.parse(localStorage.getItem("bills"));
+    const userStr = localStorage.getItem("solar_user");
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
 
-    if (storedBills && storedBills.length > 0) {
-      setBills(storedBills);
-    } else {
-      const data = [
-        { id: 1, billNo: "B001", date: "2026-03-01", units: 120, amount: 1500, loan: 500, subsidy: 200, downpayment: 800, status: "Paid" },
-        { id: 2, billNo: "B002", date: "2026-03-10", units: 95, amount: 1100, loan: 400, subsidy: 150, downpayment: 550, status: "Unpaid" },
-        { id: 3, billNo: "B003", date: "2026-03-15", units: 140, amount: 1800, loan: 700, subsidy: 300, downpayment: 800, status: "Paid" },
-        { id: 4, billNo: "B004", date: "2026-03-20", units: 80, amount: 900, loan: 300, subsidy: 100, downpayment: 500, status: "Unpaid" },
-      ];
-
-      setBills(data);
-
-      // 🔥 Save initial data
-      localStorage.setItem("bills", JSON.stringify(data));
-    }
+    api.get(`bills/?client_id=${user.id}`)
+      .then(res => setBills(res.data))
+      .catch(err => console.error("Bill fetch error", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const filteredBills = bills.filter((bill) =>
-    bill.billNo.toLowerCase().includes(search.toLowerCase())
+    bill.bill_no.toLowerCase().includes(search.toLowerCase())
   );
 
-  // 🔥 TOTAL PAID AMOUNT
-  const totalPaid = bills
-    .filter((b) => b.status === "Paid")
-    .reduce((sum, b) => sum + b.amount, 0);
+  const totalPaid = bills.filter((b) => b.status === "Paid").reduce((sum, b) => sum + parseFloat(b.amount), 0);
+  const totalPending = bills.filter((b) => b.status === "Unpaid").reduce((sum, b) => sum + parseFloat(b.amount), 0);
 
-  // 🔥 PAY FUNCTION (UPDATED WITH STORAGE)
-  const handlePay = (id) => {
-    const updated = bills.map((bill) =>
-      bill.id === id ? { ...bill, status: "Paid" } : bill
-    );
-
-    setBills(updated);
-
-    // 🔥 Save updated bills
-    localStorage.setItem("bills", JSON.stringify(updated));
+  const handlePay = async (id) => {
+    // In prod, this opens a Stripe modal or Payment.jsx. For our demo logic, we'll mark it paid directly via DB.
+    try {
+        await api.patch(`bills/${id}/`, { status: "Paid" });
+        setBills(bills.map(b => b.id === id ? { ...b, status: "Paid" } : b));
+    } catch (err) {
+        alert("Failed to process transaction.");
+    }
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
+    <div className="bg-[#020617] min-h-screen p-6 font-sans text-white overflow-x-hidden">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">My Bills</h1>
-          <p className="text-gray-500 text-sm">
-            Track your electricity usage and payments
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent">Finances & Invoices</h1>
+          <p className="text-gray-400 mt-2 font-medium">
+            Monitor your energy expenditures and hardware loans
           </p>
-        </div>
+        </motion.div>
 
-        <input
-          type="text"
-          placeholder="Search bill..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="relative w-full md:w-auto">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="w-5 h-5 text-gray-500" />
+            </div>
+            <input
+                type="text"
+                placeholder="Search index..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full md:w-80 bg-[#0f172a]/60 border border-white/10 pl-11 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-transparent transition-all shadow-inner text-white"
+            />
+        </motion.div>
       </div>
 
       {/* SUMMARY CARDS */}
-      <div className="grid md:grid-cols-4 gap-4 mb-6">
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-gray-500 text-sm">Total Bills</p>
-          <h2 className="text-xl font-bold">{bills.length}</h2>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-gray-500 text-sm">Paid</p>
-          <h2 className="text-xl font-bold text-green-600">
-            {bills.filter(b => b.status === "Paid").length}
-          </h2>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-gray-500 text-sm">Pending</p>
-          <h2 className="text-xl font-bold text-red-500">
-            {bills.filter(b => b.status === "Unpaid").length}
-          </h2>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow">
-          <p className="text-gray-500 text-sm">Total Paid Amount</p>
-          <h2 className="text-xl font-bold text-blue-600">₹{totalPaid}</h2>
-        </div>
-
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+        {[
+            { tag: "Total Invoices", value: bills.length, icon: FileText, color: "text-gray-300" },
+            { tag: "Cleared", value: bills.filter(b => b.status === "Paid").length, icon: CheckCircle, color: "text-green-400" },
+            { tag: "Outstanding", value: bills.filter(b => b.status === "Unpaid").length, icon: Clock, color: "text-red-400" },
+            { tag: "Gross Paid", value: `₹${totalPaid.toLocaleString()}`, color: "text-blue-400" }
+        ].map((stat, i) => (
+            <motion.div 
+               key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+               className="bg-[#0f172a]/80 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-xl flex flex-col justify-between"
+            >
+               <p className="text-gray-500 text-xs font-semibold tracking-widest uppercase mb-2">{stat.tag}</p>
+               {loading ? <div className="h-8 w-16 bg-white/5 animate-pulse rounded"></div> : <h2 className={`text-3xl font-extrabold ${stat.color}`}>{stat.value}</h2>}
+            </motion.div>
+        ))}
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow p-6">
-
-        {filteredBills.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No bills found 🔍</p>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="bg-[#0f172a]/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden"
+      >
+        {loading ? (
+            <div className="p-12 space-y-4 text-center text-gray-500 animate-pulse font-medium">Fetching transaction ledger...</div>
+        ) : filteredBills.length === 0 ? (
+          <div className="text-center py-20">
+            <FileText className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+            <p className="text-gray-400 font-bold text-lg">No Financial Records 🔍</p>
+            <p className="text-gray-600 mt-1">Your invoice history is empty.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-
-            <table className="w-full text-left">
-
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b text-gray-600 text-sm">
-                  <th className="p-3">Bill No</th>
-                  <th className="p-3">Date</th>
-                  <th className="p-3">Units</th>
-                  <th className="p-3">Amount</th>
-                  <th className="p-3">Loan</th>
-                  <th className="p-3">Subsidy</th>
-                  <th className="p-3">Down Payment</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Action</th>
+                <tr className="bg-white/5 border-b border-white/10 text-gray-400 text-xs uppercase tracking-widest">
+                  <th className="p-5 font-semibold">Ledger ID</th>
+                  <th className="p-5 font-semibold">Timestamp</th>
+                  <th className="p-5 font-semibold">KWh Metric</th>
+                  <th className="p-5 font-semibold">Total Amount</th>
+                  <th className="p-5 font-semibold text-center">Status</th>
+                  <th className="p-5 font-semibold text-right">Action Gate</th>
                 </tr>
               </thead>
-
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {filteredBills.map((bill) => (
-                  <tr key={bill.id} className="border-b hover:bg-gray-50 transition">
-
-                    <td className="p-3 font-medium">{bill.billNo}</td>
-                    <td className="p-3 text-gray-600">{bill.date}</td>
-                    <td className="p-3">{bill.units}</td>
-                    <td className="p-3 font-semibold">₹{bill.amount}</td>
-
-                    <td className="p-3 text-blue-600">₹{bill.loan}</td>
-                    <td className="p-3 text-green-600">₹{bill.subsidy}</td>
-                    <td className="p-3 text-purple-600">₹{bill.downpayment}</td>
-
-                    <td className="p-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  <tr key={bill.id} className="hover:bg-white/5 transition group">
+                    <td className="p-5 font-medium text-gray-200">{bill.bill_no}</td>
+                    <td className="p-5 text-gray-500 tracking-wide text-sm">{bill.date}</td>
+                    <td className="p-5 text-gray-300">{bill.units}</td>
+                    <td className="p-5 font-semibold text-white">₹{parseFloat(bill.amount).toLocaleString()}</td>
+                    
+                    <td className="p-5 text-center">
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border ${
                           bill.status === "Paid"
-                            ? "bg-green-100 text-green-600"
-                            : "bg-red-100 text-red-500"
-                        }`}
-                      >
+                            ? "bg-green-500/10 text-green-400 border-green-500/20"
+                            : "bg-red-500/10 text-red-400 border-red-500/20"
+                      }`}>
                         {bill.status}
                       </span>
                     </td>
 
-                    <td className="p-3">
-                      {bill.status === "Unpaid" && (
+                    <td className="p-5 text-right w-32">
+                      {bill.status === "Unpaid" ? (
                         <button
                           onClick={() => handlePay(bill.id)}
-                          className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                          className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-400 hover:to-yellow-400 text-black font-bold px-4 py-2 rounded-xl transition shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:shadow-[0_0_25px_rgba(249,115,22,0.5)]"
                         >
-                          Pay
+                          Execute
                         </button>
+                      ) : (
+                        <span className="w-full inline-block text-center text-gray-600 font-medium text-sm">Settled</span>
                       )}
                     </td>
-
                   </tr>
                 ))}
               </tbody>
-
             </table>
-
           </div>
         )}
-
-      </div>
-
+      </motion.div>
     </div>
   );
 }

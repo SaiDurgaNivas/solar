@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, CustomerProfile, Installation, Booking
+from .models import User, CustomerProfile, Installation, Booking, Bill, UsageTelemetry
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,3 +27,13 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ['id', 'client', 'client_name', 'service_type', 'date', 'notes']
+
+class BillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Bill
+        fields = '__all__'
+
+class UsageTelemetrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsageTelemetry
+        fields = '__all__'

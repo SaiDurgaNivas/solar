@@ -42,3 +42,27 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"Booking by {self.client.username}"
+
+class Bill(models.Model):
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bills')
+    bill_no = models.CharField(max_length=20, unique=True)
+    date = models.DateField(auto_now_add=True)
+    units = models.IntegerField(default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    loan = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    subsidy = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    downpayment = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    status = models.CharField(max_length=20, choices=(('Paid', 'Paid'), ('Unpaid', 'Unpaid')), default='Unpaid')
+
+    def __str__(self):
+        return f"Bill {self.bill_no} for {self.client.username}"
+
+class UsageTelemetry(models.Model):
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='telemetry')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    monthly_avg = models.IntegerField(default=120)
+    total_units = models.IntegerField(default=350)
+    efficiency = models.IntegerField(default=85)
+
+    def __str__(self):
+        return f"Telemetry for {self.client.username}"
