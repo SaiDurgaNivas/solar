@@ -108,8 +108,8 @@ const Dashboard = () => {
         <div className="lg:col-span-1 space-y-4">
           <h3 className="text-xl font-bold text-gray-200 mb-4">Quick Actions</h3>
           {[
-            { to: "/customers", icon: PlusCircle, title: "Add Customer", desc: "Register a new client", hover: "hover:border-orange-500" },
-            { to: "/installations", icon: Zap, title: "New Installation", desc: "Log a solar setup", hover: "hover:border-yellow-500" },
+            { to: "/customer", icon: PlusCircle, title: "Add Customer", desc: "Register a new client", hover: "hover:border-orange-500" },
+            { to: "/installations", icon: Zap, title: "Manage Installations", desc: "Access infrastructure grid", hover: "hover:border-yellow-500" },
             { to: "/billing", icon: FileText, title: "Generate Invoice", desc: "Create new bill", hover: "hover:border-blue-500" }
           ].map((action, i) => (
             <Link 

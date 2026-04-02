@@ -8,10 +8,20 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     customer_profile = CustomerProfileSerializer(read_only=True)
-    
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'first_name', 'last_name', 'customer_profile']
+        fields = ['id', 'username', 'email', 'role', 'first_name', 'last_name', 'password', 'customer_profile']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', 'default123')
+        role = validated_data.pop('role', 'customer')
+        user = User.objects.create_user(**validated_data)
+        user.set_password(password)
+        user.role = role
+        user.save()
+        return user
 
 class InstallationSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.username', read_only=True)
